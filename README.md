@@ -20,11 +20,11 @@ Calvin has a deterministic approach, where the order used to resolve conflicts i
 
 The goal of this POC is to evaluate the idea using Kafka both
 to implement the transaction log, the response stream and all the streams between the partitions.
-* The storage level is an in-memory database (`[shopDB.ml](shopDB.ml)`)
+* The storage level is an in-memory database ([shopDB.ml](shopDB.ml))
   built along the [event sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) pattern.
 * This database is hard-coded but the scenario is designed to expose issues in distributed transaction:
   integrity constraints and multi-node transactions.
-* All the user requests and commands are defined as structured values (`[shop.mli](shop.mli)`) which vehicle all the relevant data.
+* All the user requests and commands are defined as structured values ([shop.mli](shop.mli)) which vehicle all the relevant data.
   This is also the case for the system responses and all the internal messages (checking a constraint or updating a relation).
 * The key point is that the user requests and commands are the *unit* of transaction;
   and that all these transactions are arranged in an ordered sequence.
@@ -61,7 +61,7 @@ Response(9,Stock([(1,19),(2,5),(3,90)]))
 ```
 
 The distributed implementation use several databases nodes (using the same in-memory storage as the single node implementation)
-but storing only part of the data (using a data distribution scheme described in `[shopPartition.ml](shopPartition.ml)`).
+but storing only part of the data (using a data distribution scheme described in [shopPartition.ml](shopPartition.ml)).
 Two nodes can play the same role and hold the same partition of data, acting as replica.
 
 In this distributed setting,
@@ -84,7 +84,7 @@ This is here that Calvin comes in play.
 * These sets of keys used by the running transactions are aggregated by each partition node
   to queue transactions waiting a specific set of keys to be available.
 
-The distributed implementation use several Kafka topics (which can be created using `[create_topics.sh](create_topics.sh)`).
+The distributed implementation use several Kafka topics (which can be created using [create_topics.sh](create_topics.sh)).
 * The topic `db_transaction_request` materializes the transaction log, collecting all the user requests and commands.
   (this topic must have a single partition to ensure a total ordering of the transactions).
 * The topic `db_transaction_outcome` collects all the response from the system to the users.
