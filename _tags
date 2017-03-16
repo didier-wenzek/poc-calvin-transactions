@@ -1,0 +1,5 @@
+<koptions.*>: package(cmdliner)
+<kcluster.*>: package(okafka)
+<shopMVCC.*>: package(lwt)
+<transaction_manager.*>: package(cmdliner), package(okafka)
+<partition_server.*>: package(cmdliner), package(okafka)
