@@ -1,4 +1,5 @@
-#POC aimed to evaluate the deterministic approach of Calvin for distributed transactions.
+POC aimed to evaluate the deterministic approach of Calvin for distributed transactions.
+----------------
 
 This POC is based after a series of papers which advocate a deterministic approach for distributed transactions.
 
@@ -95,8 +96,53 @@ The distributed implementation use several Kafka topics (which can be created us
   in order to trigger the transaction commit or rollback decision.
   In this prototype, these partial responses are collected by a process (called the transaction manager).
 
+To test the distributed implementation we have to launch :
+* One transaction manager (the current implementation doesn't support concurrent transaction managers).
+* One partition server per partition (the current implementation doesn't support replica).
 
-  
-  
+```Shell
+$ xterm -e ./transaction_manager.native 1 1 &
 
+$ xterm -e ./partition_server.native 1 3 &
+$ xterm -e ./partition_server.native 2 3 &
+$ xterm -e ./partition_server.native 3 3 &
+```
+
+Kafka is then used to send transactions and read the system responses.
+The outcome MUST be the same as with a single node server.
+
+```Shell
+$ ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic db_transaction_request
+NewCustomer(1, "foo")                      # ok
+NewCustomer(2, "bar")                      # ok
+NewCategory(0, "default category")         # ok
+NewProduct(1, 0, "P1")                     # ok
+NewProduct(2, 0, "P2")                     # ok
+NewProduct(3, 0, "P3")                     # ok
+NewOrder(1,1,[(1,10)])                     # expect error; not enough stock
+NewStockDelivery [(1,20),(2,10),(3,100)]   # ok
+NewOrder(2,1,[(1,1),(2,5),(3,10)])         # ok
+GetStock [1,2,3]
+
+$ bin/kafka-console-consumer.sh --zookeeper localhost --topic db_transaction_outcome
+Accepted(28,NewCategory(0,"default category"))
+Accepted(27,NewCustomer(2,"bar"))
+Accepted(30,NewProduct(2,0,"P2"))
+Accepted(31,NewProduct(3,0,"P3"))
+Accepted(26,NewCustomer(1,"foo"))
+Accepted(29,NewProduct(1,0,"P1"))
+Accepted(33,NewStockDelivery([(1,20),(2,10),(3,100)]))
+Rejected(32,NewOrder(1,1,[(1,10)]),)
+Accepted(34,NewOrder(2,1,[(1,1),(2,5),(3,10)]))
+Response(35,Stock([(2,5),(3,90),(1,19)]))
+```
+
+TODO
+----
+* Understand why everything is so slow.
+  * Is this only due to latency introduced by batch-processing of the requests ?
+    Is this latency amplified by the round-trips between the servers ?
+  * Give a try to another transport layer between the transaction managers and the transaction servers (ZeroMQ or Nanomsg)
+* Add support for concurrent transaction managers.
+* Add support for partition replica.
 
