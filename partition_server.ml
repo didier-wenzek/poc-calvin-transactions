@@ -1,6 +1,5 @@
 open Cmdliner
 open Koptions
-open Kcluster
 open Lwt
 open Shop
 module Cluster = Kcluster
@@ -60,11 +59,10 @@ let handle_request_msg state = function
      )
 
 let lwt_main kafka_cluster request_topic response_topic partition_id partition_count =
-  let kafka_options = ["metadata.broker.list",kafka_cluster] in
-  let consumer = Kafka.new_consumer kafka_options in
-  let producer = Kafka_lwt.new_producer kafka_options in
-  let request_topic = topic_consumer consumer request_topic "partition_server" partition_id partition_count in
-  let _ = check_topic consumer request_topic partition_count in 
+  let consumer = Kafka.new_consumer (consumer_options kafka_cluster) in
+  let producer = Kafka_lwt.new_producer (producer_options kafka_cluster) in
+  let request_topic = Cluster.topic_consumer consumer request_topic "partition_server" partition_id partition_count in
+  let _ = Cluster.check_topic consumer request_topic partition_count in 
   let request_partition = partition_id mod partition_count in
   let response_topic = Cluster.topic_producer producer response_topic in
   let forward_response response =

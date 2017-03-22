@@ -1,6 +1,5 @@
 open Cmdliner
 open Koptions
-open Kcluster
 open Lwt
 open Shop
 module Cluster = Kcluster
@@ -131,13 +130,12 @@ let rec list_fold add acc = function
 
 let lwt_main kafka_cluster transac_topic request_topic criteria_topic outcome_topic manager_id manager_count =
   let manager_partition = manager_id mod manager_count in
-  let kafka_options = ["metadata.broker.list",kafka_cluster] in
-  let consumer = Kafka.new_consumer kafka_options in
-  let producer = Kafka_lwt.new_producer kafka_options in
-  let transac_topic = topic_consumer consumer transac_topic "transaction_manager" manager_id manager_count in
-  let _ = check_topic consumer transac_topic 1 in
-  let criteria_topic = topic_consumer consumer criteria_topic "transaction_manager" manager_id manager_count in
-  let _ = check_topic consumer criteria_topic manager_count in
+  let consumer = Kafka.new_consumer (consumer_options kafka_cluster) in
+  let producer = Kafka_lwt.new_producer (producer_options kafka_cluster) in
+  let transac_topic = Cluster.topic_consumer consumer transac_topic "transaction_manager" manager_id manager_count in
+  let _ = Cluster.check_topic consumer transac_topic 1 in
+  let criteria_topic = Cluster.topic_consumer consumer criteria_topic "transaction_manager" manager_id manager_count in
+  let _ = Cluster.check_topic consumer criteria_topic manager_count in
   let request_topic = Cluster.topic_producer producer request_topic in
   let outcome_topic = Cluster.topic_producer producer outcome_topic in
   let queue = Kafka.new_queue consumer in

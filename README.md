@@ -112,7 +112,7 @@ Kafka is then used to send transactions and read the system responses.
 The outcome MUST be the same as with a single node server.
 
 ```Shell
-$ ./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic db_transaction_request
+$ bin/kafka-console-producer.sh --broker-list localhost:9092 --topic db_transaction_request
 NewCustomer(1, "foo")                      # ok
 NewCustomer(2, "bar")                      # ok
 NewCategory(0, "default category")         # ok

@@ -41,3 +41,12 @@ let fatal_error msg =
    prerr_endline msg;
    exit 2
 
+let consumer_options brokers = [
+  "metadata.broker.list", brokers;
+  "fetch.wait.max.ms", "10";
+]
+
+let producer_options brokers = [
+  "metadata.broker.list", brokers;
+  "queue.buffering.max.ms", "5";
+]
